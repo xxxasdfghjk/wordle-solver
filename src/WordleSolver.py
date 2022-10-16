@@ -184,9 +184,9 @@ class WordleSolver:
                 [wordHasChar/2.0, wordHasPosChar])
             return ruijido
 
-    def solver(self, answerWord, deb=0):
+    def solver(self, answerWord, printLog=True):
         currentAnswerCandidate = copy.deepcopy(self.answerCandidate)
-        COUNT = 0
+        submitted = []
         expectedInfoAms = [{} for i in range(self.WORD_LENGTH)]
         state = [{} for i in range(self.WORD_LENGTH)]
         for j in range(self.WORD_LENGTH):
@@ -196,40 +196,29 @@ class WordleSolver:
             for i in self.ALPHABET:
                 expectedInfoAms[j].update({i: CharStatus.NO_INFO})
         while True:
-            COUNT = COUNT + 1
             for i in range(self.WORD_LENGTH):
                 for j in self.ALPHABET:
                     expectedInfoAms[i][j] = self.calculateAmsBenefit(
                         state, i, j, currentAnswerCandidate)
             submitWord = self.chooseWord(
                 expectedInfoAms, currentAnswerCandidate, self.wordsList, state)
+            submitted.append(submitWord)
             result = self.wordle(submitWord, answerWord)
             isEnd, currentAnswerCandidate, state = self.updateStatus(
                 result, state, submitWord, currentAnswerCandidate, answerWord)
             if (isEnd == True):
-                print("== Success!! ==")
-                print("Answer : "+submitWord + " "+"Try Count : "+str(COUNT))
-                print("===============")
-                return COUNT
+                if (printLog):
+                    print("== Success!! ==")
+                    print("Answer : "+submitWord + " " +
+                          "Try Count : "+str(len(submitted)))
+                    print("===============")
+                return submitted
 
-    def allTest(self):
-        test = []
-        with open("./wordlist_hidden", "r") as wd:
-            while True:
-                word = wd.readline().rstrip("\n")
-                if len(word) == 0:
-                    break
-                test.append(word)
-        lis = []
-        print(test)
-        sum = 0
+    def allTest(self, isFileOutput=False, printLog=False,):
+        test = self.answerCandidate
         for i in test:
-            tryNum = self.solver(i)
-            sum = sum + tryNum
-            if (tryNum > 6):
-                lis.append(i)
-                print(i)
-        print(lis)
+            tryWords = self.solver(i, printLog=False)
+            print(','.join(tryWords))
 
     def isFormatted(self, st):
         for i in st:
